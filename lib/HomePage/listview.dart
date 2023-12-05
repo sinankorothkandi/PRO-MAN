@@ -1,4 +1,4 @@
-// ignore_for_file: prefer_const_constructors, must_be_immutable
+// ignore_for_file: prefer_const_constructors, must_be_immutable, body_might_complete_normally_nullable
 
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
