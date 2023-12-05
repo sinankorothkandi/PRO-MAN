@@ -1,0 +1,1874 @@
+// // ignore: file_names
+// import 'package:flutter/material.dart';
+// import 'package:hive/hive.dart';
+// import 'package:hive_flutter/hive_flutter.dart';
+// import 'package:project_managment/databace/taskdatabace.dart';
+// import 'package:project_managment/functions/background.dart';
+// import 'package:project_managment/functions/color.dart';
+// import 'package:project_managment/task/subTask/dateSelect.dart';
+// import 'package:project_managment/task/subTask/tab.dart';
+
+
+// class AddPageDaily extends StatefulWidget {
+//   const AddPageDaily({super.key});
+
+//   @override
+//   State<AddPageDaily> createState() => _AddPageDailyState();
+// }
+
+// class _AddPageDailyState extends State<AddPageDaily> {
+//   final TextEditingController titleController = TextEditingController();
+//   DateTime? startDate;
+//   DateTime? endDate;
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//       appBar: const PreferredSize(
+//         preferredSize: Size.fromHeight(80),
+//         child: CustomAppBar(title: Text('Add Task')),
+//       ),
+//       body: CustomBackground(
+//         child: SingleChildScrollView(
+//           child: Column(
+//             children: [
+//               DateSelect(),
+//                Padding(
+//                 padding: EdgeInsets.only(top: 26, right: 310, bottom: 5),
+//                 child: Text(
+//                   'Title ',
+//                   style: TextStyle(
+//                       fontSize: 18, color: blue, fontWeight: FontWeight.bold),
+//                 ),
+//               ),
+//               Padding(
+//                 padding: const EdgeInsets.symmetric(horizontal: 45),
+//                 child: TextField(
+//                   controller: titleController,
+//                   decoration: const InputDecoration(
+//                     hintText: 'Task title...',
+//                     border: InputBorder.none,
+//                   ),
+//                 ),
+//               ),
+//               const TabPage(),
+//               ElevatedButton(
+//                 onPressed: () {
+//                   // Get task details from the page
+//                   String title = titleController.text;
+//                   // Add the task to the database
+//                   addTaskToDatabase(title, startDate, endDate);
+//                 },
+//                 child: const Text('Create Task'),
+//               ),
+//             ],
+//           ),
+//         ),
+//       ),
+//     );
+//   }
+
+//   // Add the task to the database
+  
+// void addTaskToDatabase(String title, DateTime? startDate, DateTime? endDate) async {
+//     final taskBox = await Hive.openBox<Task>('tasks');
+//     final newTask = Task.createTask(
+//       dailyheading: title, 
+//       dailydetails: '',
+//        priorityheading: '', 
+//        prioritydetails: '', 
+//        subtasks: [], 
+//        priorityendDates: [], 
+//        prioritystartDates: [], 
+//          dailystartDates: startDate != null ? [startDate] : [],
+//     dailyendDates: endDate != null ? [endDate] : [],
+      
+//     );
+//     taskBox.add(newTask);
+//     print('Task added: $title');
+//   }
+
+// }
+
+
+
+
+
+
+
+
+
+
+
+//========================================================
+
+
+
+
+
+
+
+
+import 'package:flutter/material.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:to_do_app/calander.dart/celender.dart';
+import 'package:to_do_app/color.dart';
+import 'package:to_do_app/database/taskclass.dart';
+
+class AddTaskPage extends StatefulWidget {
+  final Task? task;
+
+  const AddTaskPage({super.key, this.task});
+
+  @override
+
+  // ignore: library_private_types_in_public_api
+  _AddTaskPageState createState() => _AddTaskPageState();
+}
+extends State<AddTaskPage> {
+  final TextEditingController taskNameController = TextEditingController();
+  final TextEditingController taskDetailsController = TextEditingController();
+  final TextEditingController subtaskController = TextEditingController();
+  //========================
+  String taskHeading = "";
+  String taskDetails = "";
+  String subtask = "";
+  List<Subtask> subtasksList = [];
+  bool isEdit = false;
+  DateTime? selectedStartDate;
+  DateTime? selectedEndDate; 
+
+  final _formKey = GlobalKey<FormState>();
+
+class _AddTaskPageState 
+  @override
+  //===========================
+  void initState() {
+    super.initState();
+    if (widget.task != null) {
+      taskNameController.text = widget.task!.heading;
+      taskDetailsController.text = widget.task!.details;
+      taskHeading = widget.task!.heading;
+      taskDetails = widget.task!.details;
+      subtasksList = widget.task!.subtasks.cast<Subtask>();
+      selectedStartDate = widget.task!.startDate != null
+          ? DateTime.tryParse(widget.task!.startDate!)
+          : null;
+
+      selectedEndDate = widget.task!.endDate != null
+          ? DateTime.tryParse(widget.task!.endDate!)
+          : null;
+      isEdit = true;
+    }
+  }
+  //=========================
+
+ void addTaskToDatabase() async {
+ final newSubtasks = subtasksList.map((subtask) => Subtask(description: subtask.description)).toList();
+
+  final newTask = Task.createTask(
+    heading: taskHeading,
+    details: taskDetails,
+    subtasks: newSubtasks,
+    startDate: selectedStartDate?.toString(),
+    endDate: selectedEndDate?.toString(),
+  );
+
+  final taskBox = await Hive.openBox<Task>('tasks');
+
+  if (isEdit && widget.task != null) {
+    if (widget.task!.key != null) {
+      taskBox.put(widget.task!.key, newTask);
+    }
+  } else {
+    taskBox.add(newTask);
+  }
+
+  taskNameController.clear();
+  taskDetailsController.clear();
+  subtasksList.clear();
+  selectedStartDate = null;
+  selectedEndDate = null;
+
+  Navigator.of(context).pushReplacement(
+    MaterialPageRoute(
+      builder: (context) => const Calendar(),
+    ),
+  );
+}
+
+
+
+  Future<void> _showStartDatePicker(BuildContext context) async {
+    final pickedStartDate = await showDatePicker(
+      context: context,
+      initialDate: selectedStartDate ?? DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+    );
+
+    if (pickedStartDate != null) {
+      setState(() {
+        selectedStartDate = pickedStartDate;
+      });
+    }
+  }
+
+  Future<void> _showEndDatePicker(BuildContext context) async {
+    final pickedEndDate = await showDatePicker(
+      context: context,
+      initialDate: selectedEndDate ?? DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+    );
+
+    if (pickedEndDate != null) {
+      setState(() {
+        selectedEndDate = pickedEndDate;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+     
+      appBar: AppBar(
+       
+        title: Padding(
+          padding: const EdgeInsets.only(right: 50.0),
+          child: Center(
+            child: Text(
+              isEdit ? 'Edit Task' : 'New Task',
+              style: const TextStyle(
+                fontSize: 15,
+                color: blackcolor,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ),
+        leading: BackButton(
+          color: blackcolor,
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+        ),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Text(
+                'Task Heading:',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: blackcolor,
+                ),
+              ),
+              TextFormField(
+                controller: taskNameController,
+                style: const TextStyle(
+                  color:blackcolor,
+                ),
+                onChanged: (value) {
+                  setState(() {
+                    taskHeading = value;
+                  });
+                },
+                validator: (value) {
+                  if (value?.isEmpty ?? false) {
+                    return 'Please enter task heading';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16.0),
+              const Text(
+                'Task Details:',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: blackcolor,
+                ),
+              ),
+              TextFormField(
+                keyboardType: TextInputType.multiline,
+                minLines: 1,
+                maxLines: 5,
+                controller: taskDetailsController,
+                style: const TextStyle(
+                  color: blackcolor,
+                ),
+                onChanged: (value) {
+                  setState(() {
+                    taskDetails = value;
+                  });
+                },
+                validator: (value) {
+                  if (value?.isEmpty ?? false) {
+                    return 'Please enter task details';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16.0),
+              const Text(
+                'Subtask:',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: blackcolor,
+                ),
+              ),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextFormField(
+                      // controller: subtaskController,
+                      style: const TextStyle(
+                        color: blackcolor,
+                      ),
+                      //===========
+                      onChanged: (value) {
+                        setState(() {
+                          subtask = value;
+                        });
+                      },
+                      validator: (value) {
+                        if (subtasksList.isEmpty) {
+                          return 'Please enter subtask details';
+                        }
+                        return null;
+                      },
+                    ),
+                  ),
+                  //=======================sub
+                  IconButton(
+                    icon: const Icon(
+                      Icons.add_box,
+                      color: blackcolor,
+                      size: 40,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        if (subtask.isNotEmpty) {
+                          subtasksList.add(Subtask(description: subtask, isCompleted: false));
+                          subtask = "";
+                          subtaskController.text = "";
+                        }
+                      });
+                    },
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16.0),
+              const Text(
+                'Subtasks List:',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: blackcolor,
+                ),
+              ),
+              Expanded(
+                child: ListView.builder(
+                  itemCount: subtasksList.length,
+                  itemBuilder: (context, index) {
+                    return ListTile(
+                      title: Text(
+                        subtasksList[index].description, 
+                        style: const TextStyle(
+                          fontSize: 16,
+                          color: blackcolor,
+                        ),
+                      ),
+                      trailing: IconButton(
+                        icon: const Icon(Icons.delete, color: blackcolor),
+                        onPressed: () {
+                          setState(() {
+                            if (index >= 0 && index < subtasksList.length) {
+                              subtasksList.removeAt(index);
+                            }
+                          });
+                        },
+                      ),
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(height: 16.0),
+              Column(
+                children: [
+                  Row(
+                    children: [
+                      const Text(
+                        'Starting Date: ',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: blackcolor,
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.calendar_today, color: blackcolor),
+                        onPressed: () {
+                          _showStartDatePicker(context);
+                        },
+                      ),
+                      const Spacer(
+                        flex: 1,
+                      ),
+                      const Text(
+                        'Ending Date: ',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: blackcolor,
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.calendar_today, color: blackcolor),
+                        onPressed: () {
+                          _showEndDatePicker(context);
+                        },
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 5.0),
+
+                  // Ending Date Row
+                  Row(
+                    children: [
+                      Text(
+                        selectedStartDate != null
+                            ? selectedStartDate!.toString().split(' ')[0]
+                            : '',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          color: blackcolor,
+                        ),
+                      ),
+                      const Spacer(
+                        flex: 1,
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(right: 60),
+                        child: Text(
+                          selectedEndDate != null
+                              ? selectedEndDate!.toString().split(' ')[0]
+                              : '',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            color: blackcolor,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              //======================================
+              const SizedBox(height: 16.0),
+              ElevatedButton(
+                onPressed: () {
+                  if (_formKey.currentState?.validate() ?? false) {
+                    addTaskToDatabase();
+                  }
+                },
+                child: const Text('Create Task'),
+              ),
+            ],
+          ),
+        ),
+    ),
+);
+}
+}
+
+
+//==============================database========================\\
+
+
+
+  Future<void> addTaskToDatabase() async {
+  final newSubtasks = subtasksList.map((subtask) => Subtask(description: subtask.description)).toList();
+
+    final newTask = Task.createTask(
+      dailyheading: dailyTheading,
+      dailydetails: dailyTdetails,
+      priorityheading: priorityTheading,
+      prioritydetails: priorityTdetails,
+      subtasks: newSubtasks,
+      startDates: startDate?.toString(),
+      endDates: endDate?.toString(),
+    );
+
+    final taskBox = await Hive.openBox<Task>('tasks');
+
+    taskBox.add(newTask);
+
+    headingController.clear();
+    dailydetailsController.clear();
+    prioritydetailsController.clear();
+      startDate = null;
+    endDate = null;
+    subtasksList.clear();
+    
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(
+        builder: (context) => TaskPage(),
+      ),
+    );
+  }
+
+
+
+
+
+
+
+
+
+
+  //====================================submit task================
+
+
+
+
+
+    void submitTask() {
+    final newSubtasks = subtasksList
+        .map((subtask) => Subtask(description: subtask.description))
+        .toList();
+
+    final newTask = TaskModel.createTask(
+      dailyheading: num == 1 ? dailyTdetails : '',
+      dailydetails: num == 1 ? dailydetailsController.text : '',
+      priorityheading: num == 0 ? priorityTdetails : '',
+      prioritydetails: num == 0 ? prioritydetailsController.text : '',
+      subtasks: newSubtasks,
+      startDates: startDate?.toString() ?? '',
+      endDates: endDate?.toString() ?? '',
+    );
+
+    addTask(newTask);
+
+    prioritydetailsController.clear();
+    dailydetailsController.clear();
+    subtasksController.clear();
+    startDate = null;
+    endDate = null;
+    subtasksList.clear();
+
+    // Print the task for debugging purposes
+    print('New Task:');
+    print('Daily Heading: ${newTask.dailyheading}');
+    print('Priority Heading: ${newTask.priorityheading}');
+    print('Start Date: ${newTask.startDates}');
+    print('End Date: ${newTask.endDates}');
+    print('Subtasks:');
+    for (var subtask in newTask.subtasks) {
+      print('- ${subtask.description}');
+    }
+    print('-------------------------');
+
+    // Navigate to TaskPage (you can add your navigation logic)
+  }
+
+
+
+
+
+
+
+
+  //=====================showing========================
+
+
+
+   ValueListenableBuilder(
+                                    valueListenable: taskListNotifier,
+                                    builder: (BuildContext context,
+                                        List<TaskModel> taskList,
+                                        Widget? child) {
+                                      return ListView.builder(
+                                        itemCount: taskList.length,
+                                        itemBuilder: (context, index) {
+                                          final data = taskList[index];
+                                          return ListTile(
+                                            title: Text(data.priorityheading),
+                                           
+                                          );
+                                        },
+                                      );
+                                    },
+                                  )
+
+
+                                  //=======================
+
+
+                                   ValueListenableBuilder(
+                                    valueListenable: taskListNotifier,
+                                    builder: (BuildContext context,
+                                        List<TaskModel> taskList,
+                                        Widget? child) {
+                                      return ListView.builder(
+                                        itemCount: taskList.length,
+                                        itemBuilder: (context, index) {
+                                          final data = taskList[index];
+                                          return ListTile(
+                                            title: Text(data.dailyheading),
+                                           
+                                          );
+                                        },
+                                      );
+                                    },
+                                  )
+
+
+
+
+
+
+
+
+                                  //============================================================================
+
+                                         //  Column(
+      //   children: [
+      //     Padding(
+      //       padding: const EdgeInsets.all(16.0),
+      //        child: Row(
+      //         children: [
+      //          Expanded(
+      //           child: TextField(
+      //            controller: subtasksController,
+      //             decoration: const InputDecoration(
+      //              hintText: 'Sub Task',
+      //              ),
+      //             ),
+      //            ),
+      //              ElevatedButton(
+      //             onPressed: (){},
+      //             child: Text('Add'),
+      //           ),
+      //         ],
+      //       ),
+      //     ),
+      //     SizedBox(height: 20,),
+      //     Container(
+      //        color: blue,
+      //        width: 330,
+      //        child: ListView.builder(
+      //        itemCount: subtasksList.length,
+      //        itemBuilder: (context, index) {
+      //           return ListTile(
+      //             title: Text(subtasksList[index] as String),
+      //           );
+      //         },
+      //       ),
+      //     ),
+          
+      //   ],
+      // ),
+
+
+
+
+
+      //========================================
+
+
+
+
+      Widget _buildHorizontalListView() {
+  return ValueListenableBuilder(
+    valueListenable: Hive.box<Task>('tasks').listenable(),
+    builder: (context, Box<Task> box, child) {
+      final completedTasks = box.values.where((task) {
+        return task.subtasks.every((subtask) => subtask.isCompleted);
+      }).toList();
+
+      if (completedTasks.isEmpty) {
+        return const Center(
+          child: Text('No items found'),
+        );
+      }
+
+      return SizedBox(
+        height: 200,
+        child: ListView.builder(
+          scrollDirection: Axis.horizontal,
+          itemCount: completedTasks.length,
+          itemBuilder: (context, index) {
+            final task = completedTasks[index];
+            return GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        TaskDetailPage(taskId: tasks.indexOf(task)),
+                  ),
+                );
+              },
+              child: Card(
+                elevation: 4,
+                color: notselectedcolr,
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  width: 160,
+                  padding: const EdgeInsets.all(16.0),
+                  child: Text(
+                    task.heading,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: blackcolor,
+                      fontFamily: 'DelaGothicOne',
+                    ),
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
+      );
+    },
+  );
+}
+
+
+//=============================================listing container========================
+
+
+Container(
+                width: 60,
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(10.0),
+                ),
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                task.heading,
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  
+                                  color: Colors.black,
+                                 
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                       
+                      ],
+                    ),
+                  ],
+                ),
+              );
+
+
+              //==============================horizontal list view=====================
+
+
+
+
+
+
+
+
+              class HorizontalListViewWidgete extends StatelessWidget {
+    List<TaskModel> tasks = [];
+
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView.builder(
+      scrollDirection: Axis.horizontal,
+      itemCount: tasks.length,
+      itemBuilder: (context, index) {
+        return Container(
+          width: 200.0,
+          margin: EdgeInsets.all(8.0),
+          decoration: BoxDecoration(
+            image: DecorationImage(
+              image: AssetImage('assets/logo.png'),
+              fit: BoxFit.cover,
+            ),
+          ),
+          child: Stack(
+            children: [
+              Align(
+                alignment: Alignment.topRight,
+                child: Container(
+                  padding: EdgeInsets.all(5.0),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.5),
+                    borderRadius: BorderRadius.only(
+                      bottomLeft: Radius.circular(10.0),
+                    ),
+                  ),
+                  child: Text(
+                    'Text',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 13.0,
+                    ),
+                  ),
+                ),
+              ),
+              Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text('Task Details'), // Customize this based on your task model
+                    SizedBox(height: 10.0),
+                    LinearProgressIndicator(
+                      value: 0.7, // Replace with your task progress value (0.0 to 1.0)
+                      backgroundColor: Colors.grey,
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+                    ),
+                    SizedBox(height: 5.0),
+                    Row(
+                      children: [
+                        Text('Progress', style: TextStyle(fontSize: 12.0)),
+                        Spacer(),
+                        Text('70%', style: TextStyle(fontSize: 12.0)),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+
+
+
+//=============================priviewpage=============================
+
+
+
+
+
+
+
+
+// ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables
+
+import 'package:flutter/material.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:intl/intl.dart';
+import 'package:project_managment/databace/taskdatabace.dart';
+import 'package:project_managment/functions/color.dart';
+
+class PrioretyTaskPreview extends StatefulWidget {
+  
+   final int taskId;
+  PrioretyTaskPreview({ Key? key, required this.taskId}) : super(key: key);
+
+  @override
+  State<PrioretyTaskPreview> createState() => _PrioretyTaskPreviewState();
+}
+
+class _PrioretyTaskPreviewState extends State<PrioretyTaskPreview> {
+  
+  double progressValue = 0.7;
+  TaskModel? task;
+
+List<bool> completedSubtasks = [];
+
+   @override
+  void initState() {
+    super.initState();
+    loadTask();
+  }
+
+ Future<void> loadTask() async {
+  final taskBox = await Hive.openBox<TaskModel>('tasks_db');
+  if (widget.taskId >= 0 && widget.taskId < taskBox.length) {
+    final TaskModel? taskFromBox = taskBox.getAt(widget.taskId);
+    if (taskFromBox != null) {
+      setState(() {
+        task = taskFromBox;
+        completedSubtasks = List.generate(
+          task!.subtasks.length,
+          (index) => task!.subtasks[index].isCompleted,
+        );
+      });
+    }
+  } else {
+    setState(() {
+      task = null;
+      completedSubtasks = [];
+    });
+  }
+}
+
+
+void toggleSubtaskCompletion(int index) {
+  setState(() {
+    completedSubtasks[index] = !completedSubtasks[index];
+
+   
+    task!.subtasks[index].isCompleted = completedSubtasks[index];
+
+   
+    updateTask(task!);
+
+   
+  });
+}
+
+Future<void> updateTask(TaskModel task) async {
+    final taskBox = await Hive.openBox<TaskModel>('tasks_db');
+    await taskBox.putAt(widget.taskId, task);
+  }
+
+
+  @override
+  Widget build(BuildContext context) {
+    
+    return Scaffold(
+      body: Center(
+        child: Container(
+          height: 890,
+          width: 380,
+          color: const Color.fromARGB(255, 255, 255, 255),
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                SizedBox(
+                  height: 60,
+                ),
+                Row(
+                  children: [
+                    Text(
+                      task?.heading ?? 'N/A',
+                      style: TextStyle(
+                          fontSize: 26,
+                          color: blue,
+                          fontWeight: FontWeight.bold),
+                    ),
+                    Spacer(),
+                    Container(
+                      height: 35,
+                      width: 35,
+                      decoration: BoxDecoration(
+                          color: blue,
+                          borderRadius: BorderRadius.all(Radius.circular(10))),
+                      child: IconButton(
+                          onPressed: () {},
+                          icon: Icon(
+                            Icons.close_rounded,
+                            color: Colors.white,
+                          )),
+                    ),
+                  ],
+                ),
+                SizedBox(
+                  height: 20,
+                ),
+                Row(
+                  children: [
+                    Text(
+                      'start',
+                      style: TextStyle(
+                        fontSize: 17,
+                      ),
+                    ),
+                    Spacer(),
+                    Text(
+                      'end',
+                      style: TextStyle(
+                        fontSize: 17,
+                      ),
+                    ),
+                  ],
+                ),
+                Row(
+                  children: [
+                    Text(
+                      "${task?.startDates != null ? DateFormat('dd MMM yyyy').format(DateTime.parse(task!.startDates!)) : 'N/A'} ",
+                      style: TextStyle(
+                        fontSize: 14,
+                      ),
+                    ),
+                    Spacer(),
+                    Text(
+                      "${task?.endDates != null ? DateFormat('dd MMM yyyy').format(DateTime.parse(task!.endDates!)) : 'N/A'} ",
+                      style: TextStyle(
+                        fontSize: 14,
+                      ),
+                    )
+                  ],
+                ),
+                SizedBox(
+                  height: 20,
+                ),
+                Row(
+                  children: [
+                    Container(
+                      height: 120,
+                      width: 120,
+                      decoration: BoxDecoration(
+                          color: blue,
+                          borderRadius: BorderRadius.all(Radius.circular(20))),
+                      child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text('0',
+                                style: TextStyle(
+                                    fontSize: 54,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white)),
+                            Text(
+                              'months',
+                              style:
+                                  TextStyle(fontSize: 15, color: Colors.white),
+                            )
+                          ]),
+                    ),
+                    SizedBox(
+                      width: 9,
+                    ),
+                    Container(
+                      height: 120,
+                      width: 120,
+                      decoration: BoxDecoration(
+                          color: blue,
+                          borderRadius: BorderRadius.all(Radius.circular(20))),
+                      child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text('12',
+                                style: TextStyle(
+                                    fontSize: 54,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white)),
+                            Text(
+                              'days',
+                              style:
+                                  TextStyle(fontSize: 15, color: Colors.white),
+                            )
+                          ]),
+                    ),
+                    SizedBox(
+                      width: 9,
+                    ),
+                    Container(
+                      height: 120,
+                      width: 120,
+                      decoration: BoxDecoration(
+                          color: blue,
+                          borderRadius: BorderRadius.all(Radius.circular(20))),
+                      child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text('18',
+                                style: TextStyle(
+                                    fontSize: 54,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white)),
+                            Text(
+                              'hours',
+                              style:
+                                  TextStyle(fontSize: 15, color: Colors.white),
+                            )
+                          ]),
+                    ),
+                  ],
+                ),
+                SizedBox(
+                  height: 19,
+                ),
+                Align(
+                    alignment: Alignment.topLeft,
+                    child: Text(
+                      'Description',
+                      style: TextStyle(fontSize: 18),
+                    )),
+                SizedBox(
+                  height: 9,
+                ),
+                Text(
+                  task?.details?? 'N/A',
+                  style: TextStyle(fontSize: 15),
+                ),
+                SizedBox(
+                  height: 29,
+                ),
+                Align(
+                    alignment: Alignment.topLeft,
+                    child: Text(
+                      'Progress',
+                      style: TextStyle(fontSize: 18),
+                    )),
+                SizedBox(
+                  height: 10,
+                ),
+                Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 5),
+                    child: Stack(
+                      children: [
+                        LinearProgressIndicator(
+                          minHeight: 23,
+                          borderRadius: BorderRadius.all(Radius.circular(20)),
+                          value: progressValue,
+                          backgroundColor: Color.fromARGB(255, 163, 163, 163),
+                          valueColor: AlwaysStoppedAnimation<Color>(blue),
+                        ),
+                        Positioned.fill(
+                          child: Align(
+                            alignment: Alignment.center,
+                            child: Text(
+                              '${(progressValue * 100).toInt()}%',
+                              style: TextStyle(color: Colors.white),
+                            ),
+                          ),
+                        ),
+                      ],
+                    )),
+                SizedBox(
+                  height: 29,
+                ),
+                Align(
+                    alignment: Alignment.topLeft,
+                    child: Text(
+                      'To do List',
+                      style: TextStyle(fontSize: 18),
+                    )),
+                Column(
+                children: List.generate(task!.subtasks.length, (index) {
+                  final subtask = task!.subtasks[index].description;
+                  final isCompleted = completedSubtasks[index];
+
+                  return ListTile(
+                    title: Text(
+                      subtask ,
+                      style: TextStyle(
+                        fontSize: 20,
+                        color:  blue,
+                        decoration:
+                            isCompleted ? TextDecoration.lineThrough : null,
+                      ),
+                    ),
+                    onTap: () {
+                      toggleSubtaskCompletion(index);
+                    },
+                  );
+                }),
+              ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// class SubTaskListView extends StatelessWidget {
+//   final TaskModel selectedTask;
+
+//   SubTaskListView({required this.selectedTask, Key? key}) : super(key: key);
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return ValueListenableBuilder(
+//       valueListenable: Hive.box<TaskModel>('tasks_db').listenable(),
+//       builder: (context, Box<TaskModel> box, child) {
+//         if (selectedTask.subtasks == null || selectedTask.subtasks.isEmpty) {
+//           return SizedBox.shrink();
+//         }
+
+//         return SizedBox(
+//           height: 300,
+//           child: ListView.builder(
+//             padding: EdgeInsets.only(top: 10),
+//             itemCount: selectedTask.subtasks.length,
+//             itemBuilder: (context, index) {
+//               final subtask = selectedTask.subtasks[index];
+
+//               return GestureDetector(
+//                 onTap: () {
+//                   // Handle subtask tap if needed
+//                 },
+//                 child: GestureDetector(
+//                   onLongPress: () {
+//                     // Handle subtask long press if needed
+//                   },
+//                   child: ListTile(
+//                     title: Text(
+//                       subtask.description,
+//                       style: TextStyle(
+//                         color: subtask.completed == true
+//                             ? blue
+//                             : Colors.black,
+//                         fontSize: 18,
+//                       ),
+//                     ),
+//                     trailing: Icon(
+//                       subtask.completed == true
+//                           ? Icons.radio_button_checked_sharp
+//                           : Icons.radio_button_off,
+//                       color: blue,
+//                     ),
+//                   ),
+//                 ),
+//               );
+//             },
+//           ),
+//         );
+//       },
+//     );
+//   }
+// }
+
+class DatabaseManager {
+  static final DatabaseManager _instance = DatabaseManager._internal();
+  factory DatabaseManager() => _instance;
+  DatabaseManager._internal();
+
+  Future<void> init() async {
+    await Hive.initFlutter();
+    Hive.registerAdapter(TaskModelAdapter());
+    await Hive.openBox<TaskModel>('tasks_db');
+  }
+
+  Future<void> loadTasks(List<TaskModel> tasks, List<String> selectedTask) async {
+    final taskBox = await Hive.openBox<TaskModel>('tasks_db');
+    tasks.clear();
+    selectedTask.clear();
+    tasks.addAll(taskBox.values.toList());
+    selectedTask.addAll(tasks.map((task) => task.heading).toList());
+  }
+
+  // Add other database-related functions here
+}
+
+
+
+//=========================================
+
+
+
+// ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables
+
+import 'package:flutter/material.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:intl/intl.dart';
+import 'package:project_managment/databace/taskdatabace.dart';
+import 'package:project_managment/functions/color.dart';
+
+class TaskPreview extends StatefulWidget {
+  final TaskModel selectedTask;
+  TaskPreview({required this.selectedTask, Key? key}) : super(key: key);
+
+  @override
+  State<TaskPreview> createState() => _TaskPreviewState();
+}
+
+class _TaskPreviewState extends State<TaskPreview> {
+  late TaskModel selectedTask;
+  double progressValue = 0.7;
+  List<TaskModel> tasks = [];
+
+  late DateTime? startDate;
+  late DateTime? endDate;
+
+  @override
+  void initState() {
+    super.initState();
+    selectedTask = widget.selectedTask;
+    loadTasks();
+
+    // Set startDate and endDate based on selectedTask
+    startDate = selectedTask.startDates != null
+        ? DateTime.parse(selectedTask.startDates!)
+        : null;
+    endDate = selectedTask.endDates != null
+        ? DateTime.parse(selectedTask.endDates!)
+        : null;
+
+    // Calculate and set initial progress value
+    updateProgressValue();
+  }
+
+  Future<void> loadTasks() async {
+    final taskBox = await Hive.openBox<TaskModel>('tasks_db');
+    setState(() {
+      tasks = taskBox.values.toList();
+      updateProgressValue(); // Update progress value when tasks are loaded
+    });
+  }
+
+ void updateProgressValue() {
+  // Calculate and update the progress value based on completed subtasks
+  setState(() {
+    // Your logic to calculate the progress value
+    // For example, count the number of completed subtasks and update the progress
+    progressValue = calculateProgressValue();
+  });
+}
+
+double calculateProgressValue() {
+  // Your logic to calculate the progress value
+  // For example, count the number of completed subtasks and return the progress
+  int completedSubtasks = widget.selectedTask.subtasks
+      .where((subtask) => subtask.isCompleted)
+      .length;
+  int totalSubtasks = widget.selectedTask.subtasks.length;
+  return totalSubtasks > 0 ? completedSubtasks / totalSubtasks : 0.0;
+}
+
+  String calculateMonthsRemaining(DateTime? startDate, DateTime? endDate) {
+    if (startDate == null || endDate == null) return 'N/A';
+
+    final difference = endDate.difference(startDate);
+    final months = difference.inDays ~/ 30;
+    return months.toString();
+  }
+
+  String calculateDaysRemaining(DateTime? startDate, DateTime? endDate) {
+    if (startDate == null || endDate == null) return 'N/A';
+
+    final difference = endDate.difference(startDate);
+    final days = difference.inDays % 30;
+    return days.toString();
+  }
+
+  String calculateHoursRemaining(DateTime? startDate, DateTime? endDate) {
+    if (startDate == null || endDate == null) return 'N/A';
+
+    final difference = endDate.difference(startDate);
+    final hours = difference.inDays % 24;
+    return hours.toString();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: Container(
+          height: 890,
+          width: 380,
+          color: const Color.fromARGB(255, 255, 255, 255),
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                SizedBox(
+                  height: 60,
+                ),
+                Row(
+                  children: [
+                    Text(
+                      selectedTask.heading,
+                      style: TextStyle(
+                          fontSize: 26,
+                          color: blue,
+                          fontWeight: FontWeight.bold),
+                    ),
+                    Spacer(),
+                    Container(
+                      height: 35,
+                      width: 35,
+                      decoration: BoxDecoration(
+                          color: blue,
+                          borderRadius: BorderRadius.all(Radius.circular(10))),
+                      child: IconButton(
+                          onPressed: () {},
+                          icon: Icon(
+                            Icons.close_rounded,
+                            color: Colors.white,
+                          )),
+                    ),
+                  ],
+                ),
+                SizedBox(
+                  height: 20,
+                ),
+                Row(
+                  children: [
+                    Text(
+                      'start',
+                      style: TextStyle(
+                        fontSize: 17,
+                      ),
+                    ),
+                    Spacer(),
+                    Text(
+                      'end',
+                      style: TextStyle(
+                        fontSize: 17,
+                      ),
+                    ),
+                  ],
+                ),
+                Row(
+                  children: [
+                    Text(
+                      "${startDate != null ? DateFormat('dd MMM yyyy').format(startDate!) : 'N/A'} ",
+                      style: TextStyle(
+                        fontSize: 14,
+                      ),
+                    ),
+                    Spacer(),
+                    Text(
+                      "${endDate != null ? DateFormat('dd MMM yyyy').format(endDate!) : 'N/A'} ",
+                      style: TextStyle(
+                        fontSize: 14,
+                      ),
+                    )
+                  ],
+                ),
+                SizedBox(
+                  height: 20,
+                ),
+                Row(
+                  children: [
+                    Container(
+                      height: 120,
+                      width: 120,
+                      decoration: BoxDecoration(
+                          color: blue,
+                          borderRadius: BorderRadius.all(Radius.circular(20))),
+                      child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(calculateMonthsRemaining(startDate, endDate),
+                                style: TextStyle(
+                                    fontSize: 54,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white)),
+                            Text(
+                              'months',
+                              style:
+                              TextStyle(fontSize: 15, color: Colors.white),
+                            )
+                          ]),
+                    ),
+                    SizedBox(
+                      width: 9,
+                    ),
+                    Container(
+                      height: 120,
+                      width: 120,
+                      decoration: BoxDecoration(
+                          color: blue,
+                          borderRadius: BorderRadius.all(Radius.circular(20))),
+                      child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(calculateDaysRemaining(startDate, endDate),
+                                style: TextStyle(
+                                    fontSize: 54,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white)),
+                            Text(
+                              'days',
+                              style:
+                              TextStyle(fontSize: 15, color: Colors.white),
+                            )
+                          ]),
+                    ),
+                    SizedBox(
+                      width: 9,
+                    ),
+                    Container(
+                      height: 120,
+                      width: 120,
+                      decoration: BoxDecoration(
+                          color: blue,
+                          borderRadius: BorderRadius.all(Radius.circular(20))),
+                      child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(calculateHoursRemaining(startDate, endDate),
+                                style: TextStyle(
+                                    fontSize: 54,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white)),
+                            Text(
+                              'hours',
+                              style:
+                              TextStyle(fontSize: 15, color: Colors.white),
+                            )
+                          ]),
+                    ),
+                  ],
+                ),
+                SizedBox(
+                  height: 19,
+                ),
+                Align(
+                    alignment: Alignment.topLeft,
+                    child: Text(
+                      'Description',
+                      style: TextStyle(fontSize: 18),
+                    )),
+                SizedBox(
+                  height: 9,
+                ),
+                Text(
+                  selectedTask.details,
+                  style: TextStyle(fontSize: 15),
+                ),
+                SizedBox(
+                  height: 29,
+                ),
+                Align(
+                    alignment: Alignment.topLeft,
+                    child: Text(
+                      'Progress',
+                      style: TextStyle(fontSize: 18),
+                    )),
+                SizedBox(
+                  height: 10,
+                ),
+                Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 5),
+                    child: Stack(
+                      children: [
+                        LinearProgressIndicator(
+                          minHeight: 23,
+                          borderRadius: BorderRadius.all(Radius.circular(20)),
+                          value: progressValue,
+                          backgroundColor: Color.fromARGB(255, 163, 163, 163),
+                          valueColor: AlwaysStoppedAnimation<Color>(blue),
+                        ),
+                        Positioned.fill(
+                          child: Align(
+                            alignment: Alignment.center,
+                            child: Text(
+                              '${(progressValue * 100).toInt()}%',
+                              style: TextStyle(color: Colors.white),
+                            ),
+                          ),
+                        ),
+                      ],
+                    )),
+                SizedBox(
+                  height: 29,
+                ),
+                Align(
+                    alignment: Alignment.topLeft,
+                    child: Text(
+                      'To do List',
+                      style: TextStyle(fontSize: 18),
+                    )),
+               SubtaskListView(
+  subtasks: widget.selectedTask.subtasks,
+  tasks: tasks,
+  updateProgressValue: updateProgressValue,
+),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+  
+}
+
+class SubtaskListView extends StatefulWidget {
+  final List<Subtask> subtasks;
+  final List<TaskModel> tasks;
+  final Function updateProgressValue; // Callback function
+
+  SubtaskListView({
+    required this.subtasks,
+    required this.tasks,
+    required this.updateProgressValue, // Receive the callback
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  _SubtaskListViewState createState() => _SubtaskListViewState();
+}
+
+class _SubtaskListViewState extends State<SubtaskListView> {
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 300,
+      child: ListView.builder(
+        padding: EdgeInsets.only(top: 10),
+        itemCount: widget.subtasks.length,
+        itemBuilder: (context, index) {
+          final subtask = widget.subtasks[index];
+
+          return GestureDetector(
+            onTap: () {
+              // Toggle the completion status of the subtask
+              setState(() {
+                subtask.isCompleted = !subtask.isCompleted;
+
+                // If you want to update the completion status in the parent TaskModel,
+                // you need to find the corresponding task and update its subtasks list
+                // something like:
+                // widget.tasks[/* index of the corresponding task */].subtasks[index].isCompleted = subtask.isCompleted;
+
+                // Call the function to update the progress value
+                widget.updateProgressValue();
+              });
+            },
+            child: ListTile(
+              title: Text(
+                subtask.description,
+                style: TextStyle(
+                  color: subtask.isCompleted == true ? blue : Colors.black,
+                  fontSize: 18,
+                ),
+              ),
+              trailing: Icon(
+                subtask.isCompleted == true
+                    ? Icons.radio_button_checked_sharp
+                    : Icons.radio_button_off,
+                color: blue,
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+
+
+/==========================================
+
+
+
+// ignore_for_file: prefer_const_constructors, must_be_immutable
+
+import 'package:flutter/material.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:project_managment/HomePage/dailyPreview.dart';
+import 'package:project_managment/HomePage/priorityPrewie.dart';
+import 'package:project_managment/databace/taskdatabace.dart';
+import 'package:project_managment/functions/color.dart';
+
+class VerticalListViewWidget extends StatelessWidget {
+  List<TaskModel> tasks = [];
+
+  VerticalListViewWidget({Key? key});
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder(
+      valueListenable: Hive.box<TaskModel>('tasks_db').listenable(),
+      builder: (context, Box<TaskModel> box, child) {
+        tasks = box.values.toList();
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 30),
+          child: SizedBox(
+            height: 270,
+            child: ListView.builder(
+              padding: EdgeInsets.only(top: 10),
+              itemCount: tasks.length,
+              itemBuilder: (context, index) {
+                final task = tasks[index];
+                if (task.subtasks.isEmpty) {
+                  return GestureDetector(
+                    onTap: () {
+                      task.dailyTaskcompleate = !task.dailyTaskcompleate;
+                      task.save();
+                    },
+                    onLongPress: () {
+                      // deleteTask(task.key);
+                    },
+                    child: ListTile(
+                      title: GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (_) =>
+                                      dailyPreview(selectedTask: task)));
+                        },
+                        child: Text(
+                          task.heading,
+                          style: TextStyle(
+                              color: task.dailyTaskcompleate == true
+                                  ? blue
+                                  : Colors.black,
+                              fontSize: 18),
+                        ),
+                      ),
+                      trailing: Icon(
+                        task.dailyTaskcompleate == true
+                            ? Icons.radio_button_checked_sharp
+                            : Icons.radio_button_off,
+                        color: blue,
+                      ),
+                    ),
+                  );
+                } else {
+                  return SizedBox.shrink();
+                }
+              },
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class HorizontalListView extends StatefulWidget {
+  const HorizontalListView({super.key});
+
+  @override
+  State<HorizontalListView> createState() => _HorizontalListViewState();
+}
+
+class _HorizontalListViewState extends State<HorizontalListView> {
+  List<TaskModel> tasks = [];
+
+  final List<String> backgroundImages = [
+    'assets/menu1.png',
+    'assets/menu2.png',
+    'assets/menu4.png',
+    'assets/menu3.png',
+    'assets/menu5.png',
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder(
+      valueListenable: Hive.box<TaskModel>('tasks_db').listenable(),
+      builder: (context, Box<TaskModel> box, child) {
+        tasks = box.values.toList();
+
+        return ListView.builder(
+          scrollDirection: Axis.horizontal,
+          itemCount: tasks.length,
+          itemBuilder: (context, index) {
+            final task = tasks[index];
+
+            if (task.subtasks.isNotEmpty) {
+              final backgroundImageIndex = index % backgroundImages.length;
+
+              double progressValue = calculateProgressValue(task.subtasks);
+
+              return GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => TaskPreview(selectedTask: task),
+                    ),
+                  );
+                },
+                child: Container(
+                  width: 135,
+                  margin: EdgeInsets.all(8.0),
+                  decoration: BoxDecoration(
+                    image: DecorationImage(
+                      image: AssetImage(backgroundImages[backgroundImageIndex]),
+                      fit: BoxFit.fill,
+                    ),
+                  ),
+                  child: Stack(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(left: 70, top: 10),
+                        child: Container(
+                          padding: EdgeInsets.all(5.0),
+                          decoration: BoxDecoration(
+                            color: const Color.fromARGB(255, 245, 245, 245),
+                            borderRadius: BorderRadius.all(Radius.circular(10)),
+                          ),
+                          child: Text(
+                            '20 days',
+                            style: TextStyle(
+                              color: const Color.fromARGB(255, 0, 0, 0),
+                              fontSize: 13.0,
+                            ),
+                          ),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(top: 80),
+                        child: SizedBox(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                task.heading,
+                                style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 17),
+                              ),
+                              SizedBox(height: 50),
+                              Padding(
+                                padding:
+                                    const EdgeInsets.only(right: 60, bottom: 5),
+                                child: Text('Progress',
+                                    style: TextStyle(
+                                        fontSize: 12.0, color: Colors.white)),
+                              ),
+                              Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 10),
+                                child: LinearProgressIndicator(
+                                  value: progressValue,
+                                  backgroundColor:
+                                      const Color.fromARGB(255, 0, 0, 0),
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                      Colors.white),
+                                ),
+                              ),
+                              SizedBox(height: 5.0),
+                              Padding(
+                                padding: const EdgeInsets.only(left: 88),
+                                child: Text('${(progressValue * 100).toInt()}%',
+                                    style: TextStyle(
+                                        fontSize: 12.0, color: Colors.white)),
+                              )
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            } else {
+              return SizedBox.shrink();
+            }
+          },
+        );
+      },
+    );
+  }
+
+  double calculateProgressValue(List<Subtask> subtasks) {
+    int completedSubtasks =
+        subtasks.where((subtask) => subtask.isCompleted).length;
+    int totalSubtasks = subtasks.length;
+    return totalSubtasks > 0 ? completedSubtasks / totalSubtasks : 0.0;
+  }
+}
+
