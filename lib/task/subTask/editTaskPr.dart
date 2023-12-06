@@ -40,7 +40,7 @@ class _EditPagePriorityState extends State<EditPagePriority> {
     return Scaffold(
       appBar: const PreferredSize(
         preferredSize: Size.fromHeight(80),
-        child: CustomAppBar(title: Text('Edit Task')),
+        child: CustomAppBar(title: Text('Edit Task',style: TextStyle(color: Colors.white))),
       ),
       body: CustomBackground(
         child: SingleChildScrollView(
@@ -256,7 +256,7 @@ class _EditPagePriorityState extends State<EditPagePriority> {
                   borderRadius: BorderRadius.circular(10.0),
                 ),
               ),
-              child: const Text('Priority'),
+              child: const Text('Priority',style: TextStyle(color: Colors.white)),
             ),
           ),
         ),
@@ -291,7 +291,7 @@ class _EditPagePriorityState extends State<EditPagePriority> {
             borderRadius: BorderRadius.circular(10.0),
           ),
         ),
-        child: const Text('Edit Task'),
+        child: const Text('Edit Task',style: TextStyle(color: Colors.white)),
       ),
     );
   }

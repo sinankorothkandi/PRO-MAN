@@ -114,12 +114,12 @@ class _TaskPageState extends State<TaskPage> {
   children: [
     Icon(
       Icons.add,
-      color: Colors.white, // Change the color of the icon
+      color: Colors.white,
     ),
     Text(
       ' Add Task',
       style: TextStyle(
-        color: Colors.white, // Change the color of the text
+        color: Colors.white,
       ),
     ),
   ],
@@ -253,7 +253,7 @@ class _TaskPageState extends State<TaskPage> {
                                                                                     borderRadius: BorderRadius.circular(16.0),
                                                                                   ),
                                                                                 ),
-                                                                                child: Text('Edit'),
+                                                                                child: Text('Edit',style: TextStyle(color: Colors.white),),
                                                                               ),
                                                                             ),
                                                                             SizedBox(
@@ -273,7 +273,7 @@ class _TaskPageState extends State<TaskPage> {
                                                                                     borderRadius: BorderRadius.circular(16.0),
                                                                                   ),
                                                                                 ),
-                                                                                child: Text('Delete'),
+                                                                                child: Text('Delete',style: TextStyle(color: Colors.white)),
                                                                               ),
                                                                             ),
                                                                           ],

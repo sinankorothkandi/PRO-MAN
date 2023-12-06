@@ -7,7 +7,6 @@ import 'package:pro_man/HomePage/homePage.dart';
 import 'package:pro_man/databace/taskdatabace.dart';
 import 'package:pro_man/functions/color.dart';
 
-
 class dailyPreview extends StatefulWidget {
   final TaskModel selectedTask;
   dailyPreview({required this.selectedTask, Key? key}) : super(key: key);
@@ -26,24 +25,24 @@ class _dailyPreviewState extends State<dailyPreview> {
     selectedTask = widget.selectedTask;
   }
 
- String calculateHoursRemaining(DateTime? startDate, DateTime? endDate) {
-  if (startDate == null || endDate == null) return 'N/A';
+  String calculateHoursRemaining(DateTime? startDate, DateTime? endDate) {
+    if (startDate == null || endDate == null) return 'N/A';
 
-  final difference = endDate.difference(startDate);
-  final hours = difference.inHours;
+    final difference = endDate.difference(startDate);
+    final hours = difference.inHours;
 
-  return hours.toString();
-}
+    return hours.toString();
+  }
 
-String calculateMinutesRemaining(DateTime? startDate, DateTime? endDate) {
-  if (startDate == null || endDate == null) return 'N/A';
+  String calculateMinutesRemaining(DateTime? startDate, DateTime? endDate) {
+    if (startDate == null || endDate == null) return 'N/A';
 
-  final difference = endDate.difference(startDate);
-  final minutes = difference.inMinutes % 60;
+    final difference = endDate.difference(startDate);
+    final minutes = difference.inMinutes;
 
-  return minutes.toString();
-}
-
+    return '55';
+    //  minutes.toString();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -77,8 +76,10 @@ String calculateMinutesRemaining(DateTime? startDate, DateTime? endDate) {
                           borderRadius: BorderRadius.all(Radius.circular(10))),
                       child: IconButton(
                           onPressed: () {
-                            Navigator.push(context,
-                                MaterialPageRoute(builder: (_) => const HomePage()));
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (_) => const HomePage()));
                           },
                           icon: const Icon(
                             Icons.close_rounded,
@@ -142,15 +143,15 @@ String calculateMinutesRemaining(DateTime? startDate, DateTime? endDate) {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                         Text(
-  calculateHoursRemaining(
-    selectedTask.startDates != null
-        ? DateTime.parse(selectedTask.startDates!)
-        : null,
-    selectedTask.endDates != null
-        ? DateTime.parse(selectedTask.endDates!)
-        : null,
-  ),
+                          Text(
+                            calculateHoursRemaining(
+                              selectedTask.startDates != null
+                                  ? DateTime.parse(selectedTask.startDates!)
+                                  : null,
+                              selectedTask.endDates != null
+                                  ? DateTime.parse(selectedTask.endDates!)
+                                  : null,
+                            ),
                             style: const TextStyle(
                               fontSize: 54,
                               fontWeight: FontWeight.bold,
@@ -181,14 +182,14 @@ String calculateMinutesRemaining(DateTime? startDate, DateTime? endDate) {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
-  calculateHoursRemaining(
-    selectedTask.startDates != null
-        ? DateTime.parse(selectedTask.startDates!)
-        : null,
-    selectedTask.endDates != null
-        ? DateTime.parse(selectedTask.endDates!)
-        : null,
-  ),
+                            calculateMinutesRemaining(
+                              selectedTask.startDates != null
+                                  ? DateTime.parse(selectedTask.startDates!)
+                                  : null,
+                              selectedTask.endDates != null
+                                  ? DateTime.parse(selectedTask.endDates!)
+                                  : null,
+                            ),
                             style: const TextStyle(
                               fontSize: 54,
                               fontWeight: FontWeight.bold,
@@ -231,7 +232,8 @@ String calculateMinutesRemaining(DateTime? startDate, DateTime? endDate) {
                   width: 380,
                   child: ElevatedButton(
                     onPressed: () async {
-                      selectedTask.dailyTaskcompleate = !selectedTask.dailyTaskcompleate;
+                      selectedTask.dailyTaskcompleate =
+                          !selectedTask.dailyTaskcompleate;
 
                       for (var subtask in selectedTask.subtasks) {
                         subtask.isCompleted = selectedTask.dailyTaskcompleate;
@@ -240,7 +242,8 @@ String calculateMinutesRemaining(DateTime? startDate, DateTime? endDate) {
 
                       await selectedTask.save();
 
-                      Navigator.push(context, MaterialPageRoute(builder: (_) => const HomePage()));
+                      Navigator.push(context,
+                          MaterialPageRoute(builder: (_) => const HomePage()));
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: blue,
@@ -250,7 +253,7 @@ String calculateMinutesRemaining(DateTime? startDate, DateTime? endDate) {
                     ),
                     child: const Text(
                       'Finish',
-                      style: TextStyle(fontSize: 16),
+                      style: TextStyle(fontSize: 16, color: Colors.white),
                     ),
                   ),
                 ),
@@ -262,69 +265,3 @@ String calculateMinutesRemaining(DateTime? startDate, DateTime? endDate) {
     );
   }
 }
-
-// class subTskListView extends StatelessWidget {
-//   List<TaskModel> tasks = [];
-
-//   subTskListView({Key? key});
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return ValueListenableBuilder(
-//       valueListenable: Hive.box<TaskModel>('tasks_db').listenable(),
-//       builder: (context, Box<TaskModel> box, child) {
-//         tasks = box.values.toList();
-//         return SizedBox(
-//           height: 300,
-//           child: ListView.builder(
-//             padding: const EdgeInsets.only(top: 10),
-//             itemCount: tasks.length,
-//             itemBuilder: (context, index) {
-//               final task = tasks[index];
-
-//               return GestureDetector(
-//                 onTap: () async {
-//                   task.dailyTaskcompleate = !task.dailyTaskcompleate;
-
-//                   for (var subtask in task.subtasks) {
-//                     subtask.isCompleted = task.dailyTaskcompleate;
-//                     await subtask.save();
-//                   }
-
-//                   await task.save();
-//                 },
-//                 onLongPress: () {
-//                   // deleteTask(task.key);
-//                 },
-//                 child: GestureDetector(
-//                   onLongPress: () {
-//                     // deleteTask(task.key);
-//                   },
-//                   child: ListTile(
-//                     title: Text(
-//                       task.subtasks
-//                           .map((subtask) => subtask.description)
-//                           .join(', '),
-//                       style: TextStyle(
-//                         color: task.dailyTaskcompleate == true
-//                             ? blue
-//                             : Colors.black,
-//                         fontSize: 18,
-//                       ),
-//                     ),
-//                     trailing: Icon(
-//                       task.dailyTaskcompleate == true
-//                           ? Icons.radio_button_checked_sharp
-//                           : Icons.radio_button_off,
-//                       color: blue,
-//                     ),
-//                   ),
-//                 ),
-//               );
-//             },
-//           ),
-//         );
-//       },
-//     );
-//   }
-// }

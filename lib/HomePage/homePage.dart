@@ -63,12 +63,12 @@ class _HomePageState extends State<HomePage> {
               height: 27,
             ),
             Padding(
-              padding: const EdgeInsets.only(right: 165),
+              padding: const EdgeInsets.only(right: 175),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Welcome Sinan',
+                    'Welcome ',
                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 27),
                   ),
                   Text(
