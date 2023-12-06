@@ -69,7 +69,7 @@ class CustomBottomNavigationBar extends StatelessWidget {
               label: 'task',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.person,size: 35),
+              icon: Icon(Icons.settings,size: 35),
               label: 'profile',
             ),
           ],

@@ -1,5 +1,5 @@
 // Updated dailyPreview class
-// ignore_for_file: camel_case_types, must_be_immutable
+// ignore_for_file: camel_case_types, must_be_immutable, unused_local_variable
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';

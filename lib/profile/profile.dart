@@ -7,7 +7,6 @@ import 'package:pro_man/functions/bottemNavbar.dart';
 import 'package:pro_man/functions/color.dart';
 import 'package:pro_man/profile/profileList.dart';
 
-
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
 
@@ -21,7 +20,6 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Stack(children: [
-       
         Container(
           height: 810,
           width: 450,
@@ -36,9 +34,12 @@ class _ProfilePageState extends State<ProfilePage> {
                   clipper: BottomOvalClipper(),
                   child: Container(
                     color: blue,
-                    child:  Padding(
-                      padding: const EdgeInsets.only(top: 60,left: 18),
-                      child: Text('Profile',style: TextStyle(fontSize: 20,color: Colors.white),),
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 60, left: 18),
+                      child: Text(
+                        'Profile',
+                        style: TextStyle(fontSize: 20, color: Colors.white),
+                      ),
                     ),
                   ),
                 ),
@@ -75,7 +76,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   Padding(
                     padding: const EdgeInsets.only(top: 52),
                     child: Text(
-                      'Muhammad sinan',
+                      'Make you Better',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                           fontSize: 20,
@@ -86,53 +87,54 @@ class _ProfilePageState extends State<ProfilePage> {
                   Padding(
                     padding: const EdgeInsets.only(bottom: 20),
                     child: Text(
-                      'Flutter Developer',
+                      'compleate the task',
                     ),
                   ),
-                  
-Row(
-  mainAxisAlignment: MainAxisAlignment.center,
-  children: [
-    FutureBuilder<int>(
-      future: getCompletedTaskCount(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return CircularProgressIndicator();
-        } else if (snapshot.hasError) {
-          return Text('Error: ${snapshot.error}');
-        } else {
-          return Padding(
-            padding: const EdgeInsets.only(right: 80),
-            child: Text('${snapshot.data} completed'),
-          );
-        }
-      },
-    ),
-    Padding(
-      padding: const EdgeInsets.only(left: 30),
-      child: Container(
-        height: 30,
-        width: 1,
-        color: blue,
-      ),
-    ),
-    FutureBuilder<int>(
-      future: getPendingTaskCount(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return CircularProgressIndicator();
-        } else if (snapshot.hasError) {
-          return Text('Error: ${snapshot.error}');
-        } else {
-          return Padding(
-            padding: const EdgeInsets.only(left: 40),
-            child: Text('${snapshot.data} pending'),
-          );
-        }
-      },
-    ),
-  ],
-),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      FutureBuilder<int>(
+                        future: getCompletedTaskCount(),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return CircularProgressIndicator();
+                          } else if (snapshot.hasError) {
+                            return Text('Error: ${snapshot.error}');
+                          } else {
+                            return Padding(
+                              padding: const EdgeInsets.only(right: 80),
+                              child: Text('${snapshot.data} completed'),
+                            );
+                          }
+                        },
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(left: 30),
+                        child: Container(
+                          height: 30,
+                          width: 1,
+                          color: blue,
+                        ),
+                      ),
+                      FutureBuilder<int>(
+                        future: getPendingTaskCount(),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return CircularProgressIndicator();
+                          } else if (snapshot.hasError) {
+                            return Text('Error: ${snapshot.error}');
+                          } else {
+                            return Padding(
+                              padding: const EdgeInsets.only(left: 40),
+                              child: Text('${snapshot.data} pending'),
+                            );
+                          }
+                        },
+                      ),
+                    ],
+                  ),
                 ],
               ),
             ),

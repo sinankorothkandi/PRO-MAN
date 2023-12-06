@@ -63,7 +63,7 @@ class _HomePageState extends State<HomePage> {
               height: 27,
             ),
             Padding(
-              padding: const EdgeInsets.only(right: 175),
+              padding: const EdgeInsets.only(right: 197),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
