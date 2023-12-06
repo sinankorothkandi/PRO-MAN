@@ -21,7 +21,7 @@ class VerticalListViewWidget extends StatelessWidget {
         tasks = box.values.toList();
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 30),
-          child: SizedBox(
+          child: SizedBox( 
             height: 270,
             child: ListView.builder(
               padding: EdgeInsets.only(top: 10),
